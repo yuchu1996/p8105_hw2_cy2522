@@ -1,0 +1,100 @@
+---
+title: "p8105_hw2_cy2522"
+author: "Chu YU"
+date: "30th-Sep-2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# problem 1
+## import and clean the data
+```{r}
+# import the csv data
+library(tidyverse)
+transit_df = 
+  read.csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")%>%
+  janitor::clean_names()
+
+# clean the data
+transit_tidy_df = 
+  select( transit_df, line:entry, vending, entrance_type, ada)%>%
+  mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
+
+# dimension
+dim(transit_tidy_df)
+```
+This dataset contains variable: line, station_name,station_latitude
+,station_longitude, route_num ,route , entry, vending, entrance_type, ada. 
+My data cleaning includes three steps: cleaning variables' names, deleting the unnecessary columns and removing the missing values.
+The dimension of the dataset is 20548*10. They are not tidy.There are different routes in key variables and missing values.
+
+## distinct 
+```{r}
+# How many distinct stations?
+sn_dis = 
+  distinct(transit_tidy_df[c("station_name","line" ,"ada")]) 
+nrow(sn_dis)
+
+# How many stations with ada:
+filter(sn_dis, ada == "TRUE") %>% nrow()
+
+# prop of vending
+
+prop.table(table(transit_tidy_df$vending))
+```
+
+## Reformat
+```{r}
+# gather the route columns
+transit_tidy_df_rt = 
+  gather(transit_tidy_df, key = route_num, value = route, route1:route11)
+
+# how many stations serving A ?
+filter(transit_tidy_df_rt, route == "A") %>% 
+  distinct(station_name,line) %>%
+  nrow()
+
+# serving A as well as ADA compliance
+filter(transit_tidy_df_rt, route == "A"& ada == "TRUE") %>% 
+  distinct(station_name,line) %>%
+  nrow()
+```
+
+
+# Problem 2
+```{r}
+# import and clean the data
+trash_df = 
+  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
+                    range = "A2:N213", sheet = 1) %>%
+  janitor::clean_names() %>%
+  filter(!is.na(dumpster)) %>%
+  mutate(sports_balls = round(sports_balls, digits = 0)) 
+
+# Read and clean precipitation data for 2016 and 2017
+trash_df_2017 = 
+  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
+                    range = "A2:B15", sheet = 3) %>%
+  janitor::clean_names() %>%
+  filter(!is.na(total)) %>%
+  mutate(year = "2017")
+
+trash_df_2016 = 
+  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
+                    range = "A2:B15", sheet = 4) %>%
+  janitor::clean_names() %>%
+  filter(!is.na(total)) %>%
+  mutate(year = "2016")
+
+# combine datasets and convert months
+trash_bd = rbind(trash_df_2016, trash_df_2017) %>%
+  mutate(month = month.name[month])
+
+
+
+```
+
+4
