@@ -15,12 +15,12 @@ knitr::opts_chunk$set(echo = TRUE)
 # import the csv data
 library(tidyverse)
 transit_df = 
-  read.csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")%>%
+  read.csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
   janitor::clean_names()
 
 # clean the data
 transit_tidy_df = 
-  select( transit_df, line:entry, vending, entrance_type, ada)%>%
+  select( transit_df, line:entry, vending, entrance_type, ada) %>%
   mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
 
 # dimension
@@ -58,7 +58,7 @@ filter(transit_tidy_df_rt, route == "A") %>%
   nrow()
 
 # serving A as well as ADA compliance
-filter(transit_tidy_df_rt, route == "A"& ada == "TRUE") %>% 
+filter(transit_tidy_df_rt, route == "A" & ada == "TRUE") %>% 
   distinct(station_name,line) %>%
   nrow()
 ```
@@ -77,14 +77,14 @@ trash_df =
 # Read and clean precipitation data for 2016 and 2017
 trash_df_2017 = 
   readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
-                    range = "A2:B15", sheet = 3) %>%
+                    range = "A2:B14", sheet = 3) %>%
   janitor::clean_names() %>%
   filter(!is.na(total)) %>%
   mutate(year = "2017")
 
 trash_df_2016 = 
   readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
-                    range = "A2:B15", sheet = 4) %>%
+                    range = "A2:B14", sheet = 4) %>%
   janitor::clean_names() %>%
   filter(!is.na(total)) %>%
   mutate(year = "2016")
@@ -93,8 +93,66 @@ trash_df_2016 =
 trash_bd = rbind(trash_df_2016, trash_df_2017) %>%
   mutate(month = month.name[month])
 
+dim(trash_df)
+dim(trash_bd)
+trash_med = filter(trash_df ,year == "2016") 
+  median(trash_med$sports_balls)
+```
+From the three different sheets, we can see the dimension of trash_df is 174,14, that of trash_bd is 15, 3; there are variables like year, month, total in trash_bd, or variables like sports_balls, weight_tons in trash_df. 
+The total precipitaion in 2017 is 7.47. The median number of sports balls in a dumpster in 2016 is 26.
 
+# Problem 3
+```{r}
+devtools::install_github("p8105/p8105.datasets")
+library(p8105.datasets)
+
+data("brfss_smart2010")
+
+brfss = janitor::clean_names(brfss_smart2010) %>% 
+  filter(topic == "Overall Health") %>%
+  select(year, locationabbr, locationdesc, response, data_value) %>%
+  spread(key = response, value = data_value) %>%
+  janitor::clean_names() %>%
+  mutate(exl_gd_prop = excellent + very_good )
+  
+  
 
 ```
 
-4
+## the questions
+```{r (a)}
+# unique locations
+nrow(distinct(brfss,locationdesc))
+
+nrow(distinct(brfss,locationabbr))
+## there are 51 states here. Every states have been represented.
+names(table(brfss$locationabbr))[which.max(table(brfss$locationabbr))]
+
+## we can know that "NJ" is observed most.
+```
+
+```{r}
+# get the median
+brfss_2002 = filter(brfss, year == "2002") 
+median(brfss_2002$excellent, na.rm = T)
+```
+
+## make a histogram
+```{r}
+ggplot(brfss_2002, aes(x = excellent)) + 
+  geom_histogram() + ggtitle( "the histogram of Excellent") +
+  ggsave("hist_Exl_2002.jpg",width = 8, height = 5)
+
+```
+
+## Make a scatterplot 
+```{r}
+# 
+brfss %>% 
+  filter( locationdesc == "NY - New York County"|locationdesc =="NY - Queens County") %>%
+  ggplot(aes(x = year, y = excellent, color = locationdesc)) + 
+  geom_point(alpha = .5, position = "dodge") +
+  ggtitle( "the scatterplot of Excellent in different years") + 
+  ggsave("points_Exl_yr.jpg",width = 8, height = 5)
+```
+
