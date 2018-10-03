@@ -26,10 +26,10 @@ transit_tidy_df =
 # dimension
 dim(transit_tidy_df)
 ```
-This dataset contains variable: line, station_name,station_latitude
-,station_longitude, route_num ,route , entry, vending, entrance_type, ada. 
-My data cleaning includes three steps: cleaning variables' names, deleting the unnecessary columns and removing the missing values.
-The dimension of the dataset is 20548*10. They are not tidy.There are different routes in key variables and missing values.
+- This dataset contains : `line, station_name, station_latitude, station_longitude, route_num , route , entry, vending, entrance_type, ada.` 
+- My data cleaning includes three steps: cleaning variables' names, converting the entry variable from character (YES vs NO) to a "True" and "False", and deleting the unnecessary columns.
+- The **dimension** of the dataset : 1868*19. 
+- They are not tidy.There are different routes in key variables which I think should be added as the values and there are also many missing values.
 
 ## distinct 
 ```{r}
@@ -42,9 +42,12 @@ nrow(sn_dis)
 filter(sn_dis, ada == "TRUE") %>% nrow()
 
 # prop of vending
-
-prop.table(table(transit_tidy_df$vending))
+transit_vending = filter(transit_df, vending == "NO")
+prop.table(table(transit_vending$entry))
 ```
+- There are 465 distinct stations.
+- There are 84 stations with ADA compliance.
+- The  proportion of station entrances / exits without vending allow entrance is approximately 0.38
 
 ## Reformat
 ```{r}
@@ -62,28 +65,30 @@ filter(transit_tidy_df_rt, route == "A" & ada == "TRUE") %>%
   distinct(station_name,line) %>%
   nrow()
 ```
-
+- There are 60 stations serving train A.
+- There are 17 stations sering A that has ADA compliance.
 
 # Problem 2
 ```{r}
 # import and clean the data
+library(readxl)
 trash_df = 
-  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
-                    range = "A2:N213", sheet = 1) %>%
+  readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+                    range = "A2:N258", sheet = 1) %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster)) %>%
   mutate(sports_balls = round(sports_balls, digits = 0)) 
 
 # Read and clean precipitation data for 2016 and 2017
 trash_df_2017 = 
-  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
+  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
                     range = "A2:B14", sheet = 3) %>%
   janitor::clean_names() %>%
   filter(!is.na(total)) %>%
   mutate(year = "2017")
 
 trash_df_2016 = 
-  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-3.xlsx", 
+  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
                     range = "A2:B14", sheet = 4) %>%
   janitor::clean_names() %>%
   filter(!is.na(total)) %>%
@@ -95,15 +100,17 @@ trash_bd = rbind(trash_df_2016, trash_df_2017) %>%
 
 dim(trash_df)
 dim(trash_bd)
+sum(trash_df_2017$total)
 trash_med = filter(trash_df ,year == "2016") 
   median(trash_med$sports_balls)
 ```
-From the three different sheets, we can see the dimension of trash_df is 174,14, that of trash_bd is 15, 3; there are variables like year, month, total in trash_bd, or variables like sports_balls, weight_tons in trash_df. 
-The total precipitaion in 2017 is 7.47. The median number of sports balls in a dumpster in 2016 is 26.
+- From the three different sheets, we can see the dimension of **trash_df** is 216,14, that of **trash_bd** is 20, 3; 
+there are variables like `year, month, total `in trash_bd, or variables like`  sports_balls, weight_tons `in trash_df. 
+- The total precipitaion in 2017 is 29.93. 
+- The median number of sports balls in a dumpster in 2016 is 26.
 
 # Problem 3
 ```{r}
-devtools::install_github("p8105/p8105.datasets")
 library(p8105.datasets)
 
 data("brfss_smart2010")
@@ -114,10 +121,8 @@ brfss = janitor::clean_names(brfss_smart2010) %>%
   spread(key = response, value = data_value) %>%
   janitor::clean_names() %>%
   mutate(exl_gd_prop = excellent + very_good )
-  
-  
-
 ```
+- import and clean the data: filter the topic first and then select useful   variables, spread the response variable, clean the names of the variables, and   finally add a new variable named `exl_gd_prop`.
 
 ## the questions
 ```{r (a)}
@@ -130,12 +135,16 @@ names(table(brfss$locationabbr))[which.max(table(brfss$locationabbr))]
 
 ## we can know that "NJ" is observed most.
 ```
-
+- There are 404 unique locations included.
+  Because there are 51 states here. So every state has been represented.
+  Among all the states, `NJ` is observed most.
+  
 ```{r}
 # get the median
 brfss_2002 = filter(brfss, year == "2002") 
 median(brfss_2002$excellent, na.rm = T)
 ```
+- The median of `Excellent` response value is 23.6
 
 ## make a histogram
 ```{r}
@@ -144,15 +153,17 @@ ggplot(brfss_2002, aes(x = excellent)) +
   ggsave("hist_Exl_2002.jpg",width = 8, height = 5)
 
 ```
-
+- The histogram above is the plot presenting “Excellent” response values in the year 2002. X represents the proportion of `Excellent`, and Y represents the amount of Excelent responces in 2002.
+  We can see form the plot that most excellent response appear from proportion of 20 to 28.
 ## Make a scatterplot 
 ```{r}
 # 
 brfss %>% 
-  filter( locationdesc == "NY - New York County"|locationdesc =="NY - Queens County") %>%
+  filter( locationdesc == "NY - New York County"|locationdesc == "NY - Queens County") %>%
   ggplot(aes(x = year, y = excellent, color = locationdesc)) + 
   geom_point(alpha = .5, position = "dodge") +
   ggtitle( "the scatterplot of Excellent in different years") + 
   ggsave("points_Exl_yr.jpg",width = 8, height = 5)
 ```
 
+- It can be seen from the plot that New York County gets more Excellent response than Queen County.
