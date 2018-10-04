@@ -73,22 +73,22 @@ filter(transit_tidy_df_rt, route == "A" & ada == "TRUE") %>%
 # import and clean the data
 library(readxl)
 trash_df = 
-  readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
-                    range = "A2:N258", sheet = 1) %>%
+  readxl::read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
+                    range = "A2:N338", sheet = 1) %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster)) %>%
   mutate(sports_balls = round(sports_balls, digits = 0)) 
 
 # Read and clean precipitation data for 2016 and 2017
 trash_df_2017 = 
-  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
                     range = "A2:B14", sheet = 3) %>%
   janitor::clean_names() %>%
   filter(!is.na(total)) %>%
   mutate(year = "2017")
 
 trash_df_2016 = 
-  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+  readxl::read_xlsx("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
                     range = "A2:B14", sheet = 4) %>%
   janitor::clean_names() %>%
   filter(!is.na(total)) %>%
@@ -104,9 +104,9 @@ sum(trash_df_2017$total)
 trash_med = filter(trash_df ,year == "2016") 
   median(trash_med$sports_balls)
 ```
-- From the three different sheets, we can see the dimension of **trash_df** is 216,14, that of **trash_bd** is 20, 3; 
+- From the three different sheets, we can see the dimension of **trash_df** is 285,14, that of **trash_bd** is 19, 3; 
 there are variables like `year, month, total `in trash_bd, or variables like`  sports_balls, weight_tons `in trash_df. 
-- The total precipitaion in 2017 is 29.93. 
+- The total precipitaion in 2017 is 23.5. 
 - The median number of sports balls in a dumpster in 2016 is 26.
 
 # Problem 3
