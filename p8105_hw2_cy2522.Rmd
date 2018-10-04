@@ -104,7 +104,7 @@ sum(trash_df_2017$total)
 trash_med = filter(trash_df ,year == "2016") 
   median(trash_med$sports_balls)
 ```
-- From the three different sheets, we can see the dimension of **trash_df** is 285,14, that of **trash_bd** is 24, 3; 
+- From the three different sheets, we can see the dimension of **trash_df** is 285,14, that of **trash_bd** is 24, 3.
 there are variables like `year, month, total `in trash_bd, or variables like`  sports_balls, weight_tons `in trash_df. 
 - The total precipitaion in 2017 is 32.93. 
 - The median number of sports balls in a dumpster in 2016 is 26.
